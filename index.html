@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดเก็บเอกสารลูกค้า</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Tahoma, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+    header {
+      background: #17365d;
+      color: white;
+      padding: 22px;
+    }
+    header h1 { margin: 0 0 8px; font-size: 23px; }
+    header p { margin: 0; color: #dbeafe; }
+    .container { max-width: 1150px; margin: 24px auto; padding: 0 16px; }
+    .toolbar, .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px #0f172a0c;
+    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    input, select, button {
+      font: inherit;
+      padding: 11px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+    }
+    input, select { max-width: 100%; }
+    button {
+      border: none;
+      background: #1d4ed8;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { opacity: .9; }
+    button.danger { background: #b91c1c; }
+    button.secondary { background: #475569; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; margin-bottom: 18px; }
+    .stat { background: white; padding: 18px; border-radius: 12px; }
+    .stat strong { display: block; font-size: 27px; margin-top: 8px; color: #17365d; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+    .form-grid input, .form-grid select { width: 100%; }
+    label { display: block; font-size: 14px; margin-bottom: 6px; }
+    .field { margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f8fafc; }
+    .table-wrap { overflow-x: auto; }
+    .muted { color: #64748b; font-size: 13px; }
+    .hidden { display: none; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .notice { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 5px; font-size: 14px; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 19px; }
+      .toolbar input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>ระบบจัดเก็บเอกสารลูกค้า</h1>
+  <p>ศูนย์ข้อมูลลูกค้าและเอกสารส่วนบุคคล</p>
+</header>
+
+<main class="container">
+  <section class="stats">
+    <div class="stat">จำนวนลูกค้า<strong id="totalCustomers">0</strong></div>
+    <div class="stat">เอกสารที่เลือก<strong id="totalDocuments">0</strong></div>
+    <div class="stat">สิทธิ์ผู้ใช้งาน<strong id="roleLabel">ผู้ดูแลระบบ</strong></div>
+  </section>
+
+  <section class="panel">
+    <h2>ข้อมูลลูกค้า</h2>
+    <div class="notice">
+      ต้นแบบนี้เก็บข้อมูลไว้ในหน่วยความจำของหน้าเว็บ ข้อมูลอาจหายเมื่อรีเฟรชหรือปิดหน้าเว็บ
+      และยังไม่ใช่ระบบออนไลน์ที่ปลอดภัยสำหรับเก็บเอกสารจริง
+    </div>
+    <br>
+    <div class="form-grid">
+      <div class="field">
+        <label for="firstName">ชื่อ</label>
+        <input id="firstName" placeholder="กรอกชื่อ">
+      </div>
+      <div class="field">
+        <label for="lastName">นามสกุล</label>
+        <input id="lastName" placeholder="กรอกนามสกุล">
+      </div>
+      <div class="field">
+        <label for="phone">เบอร์โทรศัพท์</label>
+        <input id="phone" placeholder="กรอกเบอร์โทรศัพท์">
+      </div>
+      <div class="field">
+        <label for="docType">ประเภทเอกสาร</label>
+        <select id="docType">
+          <option value="บัตรประชาชน">บัตรประชาชน</option>
+          <option value="ทะเบียนบ้าน">ทะเบียนบ้าน</option>
+          <option value="หนังสือเดินทาง">หนังสือเดินทาง</option>
+          <option value="เอกสารอื่น ๆ">เอกสารอื่น ๆ</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="docNumber">เลขเอกสาร (ถ้าจำเป็น)</label>
+        <input id="docNumber" placeholder="กรอกเลขเอกสาร">
+      </div>
+      <div class="field">
+        <label for="docFile">เลือกไฟล์เอกสาร</label>
+        <input id="docFile" type="file" accept="image/*,.pdf">
+      </div>
+    </div>
+    <br>
+    <button id="saveButton" onclick="saveCustomer()">+ บันทึกข้อมูลลูกค้า</button>
+    <button class="secondary" onclick="clearForm()">ล้างแบบฟอร์ม</button>
+    <p class="muted">ระบบตัวอย่างนี้ยังไม่อัปโหลดไฟล์ไปยังเซิร์ฟเวอร์</p>
+  </section>
+
+  <section class="panel">
+    <h2>ค้นหาและจัดการข้อมูล</h2>
+    <div class="toolbar">
+      <input id="search" placeholder="ค้นหาชื่อ นามสกุล หรือเบอร์โทร" oninput="render()" style="flex:1;min-width:220px">
+      <select id="roleSelect" onchange="changeRole()">
+        <option value="admin">ผู้ดูแลระบบ</option>
+        <option value="staff">เจ้าหน้าที่</option>
+      </select>
+    </div>
+    <p class="muted">ตัวเลือกบทบาทใช้สาธิตหน้าจอเท่านั้น ไม่ใช่ระบบยืนยันตัวตนหรือการรักษาความปลอดภัยจริง</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>ชื่อ-นามสกุล</th>
+            <th>เบอร์โทรศัพท์</th>
+            <th>ประเภทเอกสาร</th>
+            <th>ชื่อไฟล์</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="customerRows"></tbody>
+      </table>
+    </div>
+    <p id="emptyMessage" class="muted">ยังไม่มีข้อมูลลูกค้า</p>
+  </section>
+
+  <section class="panel">
+    <h2>สิทธิ์เจ้าหน้าที่ (ตัวอย่างหน้าจอ)</h2>
+    <p class="muted">ในระบบจริง ผู้ดูแลต้องเป็นผู้กำหนดสิทธิ์ และตรวจสอบสิทธิ์ที่ฝั่งเซิร์ฟเวอร์ทุกครั้ง</p>
+    <div class="form-grid">
+      <label><input type="checkbox" id="permView" checked> ดูข้อมูลลูกค้า</label>
+      <label><input type="checkbox" id="permAdd" checked> เพิ่มข้อมูลและเอกสาร</label>
+      <label><input type="checkbox" id="permEdit"> แก้ไขข้อมูล</label>
+      <label><input type="checkbox" id="permDelete"> ลบข้อมูล</label>
+    </div>
+    <br>
+    <button onclick="savePermissions()">บันทึกสิทธิ์ตัวอย่าง</button>
+    <span id="permissionMessage" class="muted"></span>
+  </section>
+</main>
+
+<script>
+  let customers = [];
+  let editingId = null;
+  let nextId = 1;
+  let permissions = { view: true, add: true, edit: false, delete: false };
+
+  function saveCustomer() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const docType = document.getElementById('docType').value;
+    const docNumber = document.getElementById('docNumber').value.trim();
+    const file = document.getElementById('docFile').files[0];
+
+    if (!firstName || !lastName) {
+      alert('กรุณากรอกชื่อและนามสกุล');
+      return;
+    }
+
+    const normalizedName = (firstName + ' ' + lastName).replace(/\s+/g, ' ').toLocaleLowerCase('th');
+    const duplicate = customers.some(c =>
+      c.normalizedName === normalizedName && c.id !== editingId
+    );
+    if (duplicate) {
+      alert('มีชื่อและนามสกุลนี้ในรายการแล้ว กรุณาตรวจสอบข้อมูล');
+      return;
+    }
+
+    if (editingId !== null) {
+      if (!permissions.edit && document.getElementById('roleSelect').value === 'staff') {
+        alert('เจ้าหน้าที่ไม่มีสิทธิ์แก้ไขข้อมูล');
+        return;
+      }
+      const customer = customers.find(c => c.id === editingId);
+      if (!customer) return;
+      Object.assign(customer, {
+        firstName, lastName, normalizedName, phone, docType, docNumber,
+        fileName: file ? file.name : customer.fileName
+      });
+    } else {
+      if (!permissions.add && document.getElementById('roleSelect').value === 'staff') {
+        alert('เจ้าหน้าที่ไม่มีสิทธิ์เพิ่มข้อมูล');
+        return;
+      }
+      customers.push({
+        id: nextId++, firstName, lastName, normalizedName, phone,
+        docType, docNumber, fileName: file ? file.name : '-'
+      });
+    }
+
+    clearForm();
+    render();
+  }
+
+  function editCustomer(id) {
+    if (document.getElementById('roleSelect').value === 'staff' && !permissions.edit) {
+      alert('เจ้าหน้าที่ไม่มีสิทธิ์แก้ไขข้อมูล');
+      return;
+    }
+    const c = customers.find(x => x.id === id);
+    if (!c) return;
+    editingId = id;
+    document.getElementById('firstName').value = c.firstName;
+    document.getElementById('lastName').value = c.lastName;
+    document.getElementById('phone').value = c.phone;
+    document.getElementById('docType').value = c.docType;
+    document.getElementById('docNumber').value = c.docNumber;
+    document.getElementById('saveButton').textContent = 'บันทึกการแก้ไข';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function deleteCustomer(id) {
+    if (document.getElementById('roleSelect').value === 'staff' && !permissions.delete) {
+      alert('เจ้าหน้าที่ไม่มีสิทธิ์ลบข้อมูล');
+      return;
+    }
+    if (!confirm('ยืนยันการลบข้อมูลลูกค้ารายนี้หรือไม่?')) return;
+    customers = customers.filter(c => c.id !== id);
+    render();
+  }
+
+  function clearForm() {
+    editingId = null;
+    ['firstName', 'lastName', 'phone', 'docNumber', 'docFile'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('docType').value = 'บัตรประชาชน';
+    document.getElementById('saveButton').textContent = '+ บันทึกข้อมูลลูกค้า';
+  }
+
+  function changeRole() {
+    const role = document.getElementById('roleSelect').value;
+    document.getElementById('roleLabel').textContent =
+      role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่';
+    render();
+  }
+
+  function savePermissions() {
+    permissions = {
+      view: document.getElementById('permView').checked,
+      add: document.getElementById('permAdd').checked,
+      edit: document.getElementById('permEdit').checked,
+      delete: document.getElementById('permDelete').checked
+    };
+    document.getElementById('permissionMessage').textContent =
+      'ตั้งค่าสิทธิ์ตัวอย่างแล้ว';
+    render();
+  }
+
+  function render() {
+    const role = document.getElementById('roleSelect').value;
+    const query = document.getElementById('search').value.trim().toLocaleLowerCase('th');
+    const tbody = document.getElementById('customerRows');
+    tbody.replaceChildren();
+
+    document.getElementById('totalCustomers').textContent = customers.length;
+    document.getElementById('totalDocuments').textContent =
+      customers.filter(c => c.fileName && c.fileName !== '-').length;
+
+    if (role === 'staff' && !permissions.view) {
+      document.getElementById('emptyMessage').textContent =
+        'เจ้าหน้าที่ไม่มีสิทธิ์ดูข้อมูลลูกค้า';
+      return;
+    }
+
+    const filtered = customers.filter(c =>
+      `${c.firstName} ${c.lastName} ${c.phone}`.toLocaleLowerCase('th').includes(query)
+    );
+
+    filtered.forEach((c, index) => {
+      const tr = document.createElement('tr');
+      const values = [
+        String(index + 1),
+        c.firstName + ' ' + c.lastName,
+        c.phone || '-',
+        c.docType,
+        c.fileName || '-'
+      ];
+      values.forEach(value => {
+        const td = document.createElement('td');
+        td.textContent = value;
+        tr.appendChild(td);
+      });
+
+      const actions = document.createElement('td');
+      const wrap = document.createElement('div');
+      wrap.className = 'actions';
+
+      if (role === 'admin' || permissions.edit) {
+        const edit = document.createElement('button');
+        edit.textContent = 'แก้ไข';
+        edit.className = 'secondary';
+        edit.onclick = () => editCustomer(c.id);
+        wrap.appendChild(edit);
+      }
+
+      if (role === 'admin' || permissions.delete) {
+        const del = document.createElement('button');
+        del.textContent = 'ลบ';
+        del.className = 'danger';
+        del.onclick = () => deleteCustomer(c.id);
+        wrap.appendChild(del);
+      }
+
+      actions.appendChild(wrap);
+      tr.appendChild(actions);
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('emptyMessage').textContent =
+      filtered.length ? '' : 'ไม่พบข้อมูลลูกค้าที่ตรงกับการค้นหา';
+  }
+
+  render();
+</script>
+</body>
+</html>
